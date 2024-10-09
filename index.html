@@ -72,8 +72,8 @@
     }
 
     // Load fonts explicitly using FontFace API
-    const circularBlack = new FontFace('CircularBlack', 'url(circularBlack.otf)');
-    const circular = new FontFace('Circular', 'url(circular.otf)');
+    const circularBlack = new FontFace('CircularBlack', 'url(circularBlack.ttf)');
+    const circular = new FontFace('Circular', 'url(circular.ttf)');
 
     // Load both fonts and apply them once loaded
     Promise.all([circularBlack.load(), circular.load()])
