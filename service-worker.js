@@ -1,52 +1,46 @@
-// Define the cache name and the files we want to cache
+// Name and version of the cache
 const CACHE_NAME = 'does-network-cache-v1';
-const urlsToCache = [
+
+// Files to cache (add any other assets or scripts you want cached)
+const ASSETS_TO_CACHE = [
   '/',
-  '/circularBlack.otf',
-  '/circular.otf',
-  '/index.html' // Adjust this to your actual HTML file path
+  '/index.html',
+  '/styles.css',  // Assuming you have a separate CSS file
+  '/script.js',   // Assuming you have separate JavaScript files
+  '/sofiaPro.otf',
+  '/sofiaProBold.otf'
 ];
 
-// Install event - caching files
-self.addEventListener('install', (event) => {
+// Install event - caching essential assets
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('Opened cache');
-      return cache.addAll(urlsToCache);
-    })
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(ASSETS_TO_CACHE))
+      .then(self.skipWaiting())  // Activate the service worker immediately
   );
 });
 
-// Fetch event - serving cached files if offline
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      // Cache hit - return the cached resource
-      if (response) {
-        return response;
-      }
-
-      // If the resource is not in cache, fetch it from the network
-      return fetch(event.request).catch(() => {
-        // If offline and not cached, return a fallback page
-        return caches.match('/');
-      });
-    })
-  );
-});
-
-// Activate event - cleaning up old caches
-self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
+// Activate event - cleaning up old caches if any
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
+    caches.keys().then(cacheNames => 
+      Promise.all(
+        cacheNames.map(cache => {
+          if (cache !== CACHE_NAME) return caches.delete(cache);
         })
-      );
-    })
+      )
+    )
+  );
+  self.clients.claim();  // Claim clients to ensure control over the page
+});
+
+// Fetch event - serving assets from cache
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(cachedResponse => {
+        // Serve from cache if available, else fetch from network
+        return cachedResponse || fetch(event.request);
+      })
   );
 });
